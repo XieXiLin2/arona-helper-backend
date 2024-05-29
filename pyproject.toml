@@ -1,0 +1,29 @@
+[project]
+name = "arona-helper-backend"
+dynamic = ["version"]
+description = "Arona Helper Backend"
+authors = [{ name = "FalfaChino", email = "falfachino@qq.com" }]
+dependencies = [
+    "fastapi>=0.111.0",
+    "httpx>=0.27.0",
+    "cookit[all]>=0.4.1",
+    "SQLAlchemy>=2.0.30",
+    "pyjwt>=2.8.0",
+    "sqlacodegen>=2.3.0",
+    "pymysql>=1.1.1",
+    "uvicorn>=0.29.0",
+]
+requires-python = ">3.10,<4.0"
+readme = "README.md"
+license = { text = "MIT" }
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.version]
+source = "file"
+path = "arona_helper_backend/__main__.py"
+
+[tool.pdm.scripts]
+server.cmd = "python app.py"
