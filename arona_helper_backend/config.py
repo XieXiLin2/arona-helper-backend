@@ -1,39 +1,39 @@
-import yaml
-from pydantic import BaseModel
-from pydantic.networks import AnyHttpUrl
-from pydantic.fields import Field
-from typing import Annotated
 from pathlib import Path
-from cookit.pyd import type_validate_python
+from typing import Annotated
 
+import yaml
+from cookit.pyd import type_validate_python
+from pydantic import BaseModel
+from pydantic.fields import Field
+from pydantic.networks import AnyHttpUrl
 
 CONFIG_FILE = Path().cwd() / "config.yml"
 
 
+class RedisConfigModel(BaseModel):
+    url: str
+
+
 class DatabaseConfigModel(BaseModel):
-    dialect: str
-    driver: str | None = None
-    host: str
-    port: int | None = None
-    username: str
-    password: str
-    db: str
-    args: str | None = None
-    debug: bool
+    redis: RedisConfigModel
 
 
 class FastAPIConfigModel(BaseModel):
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # noqa: S104
     port: int = Field(default=8080, ge=1, le=65535)
-    debug: bool = False
-    reload: bool = False
     log_level: int | str = "info"
     title: str = "Arona Helper Backend"
     description: str = "Arona Helper Backend API"
 
 
+class SecretConfigModel(BaseModel):
+    jwt_secret: str
+    jwt_algorithm: str = "HS256"
+    bot_req_token: str
+
+
 class ConfigModel(BaseModel):
-    jwt_token: str
+    secret: SecretConfigModel
     upstream: Annotated[str, AnyHttpUrl]
     bawiki_data: Annotated[str, AnyHttpUrl]
     fastapi: FastAPIConfigModel
@@ -41,5 +41,6 @@ class ConfigModel(BaseModel):
 
 
 config: ConfigModel = type_validate_python(
-    ConfigModel, yaml.safe_load(CONFIG_FILE.read_text())
+    ConfigModel,
+    yaml.safe_load(CONFIG_FILE.read_text()),
 )

@@ -1,6 +1,7 @@
-from pydantic import BaseModel, field_validator
 from typing import Annotated
 from urllib.parse import unquote_plus
+
+from pydantic import BaseModel, field_validator
 
 
 class FavourRankingData(BaseModel):
@@ -64,3 +65,8 @@ class NickEditResponse(BaseModel):
     msg: str
     status: int
     success: bool
+
+
+class LoginData(BaseModel):
+    user_id: str
+    exp: int

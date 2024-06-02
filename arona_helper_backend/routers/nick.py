@@ -1,18 +1,40 @@
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
 from urllib.parse import unquote_plus
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials
 
 from arona_helper_backend.config import config
-from arona_helper_backend.utils import FavourQueryAPI
-
+from arona_helper_backend.utils import FavourQueryAPI, user_verify_bearer, verify_jwt
 
 nick_router = APIRouter(prefix="/nick")
 API = FavourQueryAPI(base_url=config.upstream)
 
 
-@nick_router.get(path="", description="获取用户昵称")
+@nick_router.get(
+    path="",
+    name="获取用户昵称",
+    description="获取用户昵称。",
+    responses={
+        200: {
+            "description": "获取成功",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": 200,
+                        "data": {
+                            "uid": 123456,
+                            "nick": "nick",
+                        },
+                    },
+                },
+            },
+        },
+    },
+)
 async def get_nick(uid: int) -> JSONResponse:
-    nick = await API.nick_edit(uid)
+    nick = await API.nick_edit(uid=uid)
     return JSONResponse(
         content={
             "status": 200,
@@ -24,18 +46,66 @@ async def get_nick(uid: int) -> JSONResponse:
     )
 
 
-# @nick_router.put(path="", description="修改用户昵称")
-# async def put_nick(uid: int, nick: str) -> JSONResponse:
-#     result = await API.nick_edit(uid, nick)
-#     return JSONResponse(
-#         content={
-#             "status": 200,
-#             "data": {
-#                 "result": result.msg,
-#                 "current": {
-#                     "uid": uid,
-#                     "nick": nick,
-#                 },
-#             },
-#         },
-#     )
+@nick_router.put(
+    path="",
+    name="修改用户昵称",
+    description="修改用户昵称。",
+    responses={
+        200: {
+            "description": "修改成功",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": 200,
+                        "data": {
+                            "result": "success",
+                            "current": {
+                                "uid": 123456,
+                                "nick": "new_nick",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        403: {
+            "description": "修改失败",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": 403,
+                        "msg": "error message",
+                    },
+                },
+            },
+        },
+    },
+)
+async def put_nick(
+    nick: str,
+    token: Annotated[HTTPAuthorizationCredentials, Depends(user_verify_bearer)],
+) -> JSONResponse:
+    try:
+        u_profile = verify_jwt(token.credentials)
+    except ValueError as e:
+        return JSONResponse(
+            content={
+                "status": 403,
+                "msg": e.args[0],
+            },
+            status_code=403,
+        )
+    uid = int(u_profile.user_id)
+    result = await API.nick_edit(uid, nick)
+    return JSONResponse(
+        content={
+            "status": 200,
+            "data": {
+                "result": result.msg,
+                "current": {
+                    "uid": uid,
+                    "nick": nick,
+                },
+            },
+        },
+    )

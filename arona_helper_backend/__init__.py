@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
+
 from arona_helper_backend.config import config
 from arona_helper_backend.routers import base_router
 
 __VERSION__ = "0.1.0"
 
+
 app = FastAPI(
-    debug=config.fastapi.debug,
     title=config.fastapi.title,
     description=config.fastapi.description,
     version=__VERSION__,
@@ -48,7 +49,7 @@ app.include_router(router=base_router)
                     },
                 },
             },
-        }
+        },
     },
 )
 async def root() -> JSONResponse:

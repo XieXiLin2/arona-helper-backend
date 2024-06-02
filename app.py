@@ -8,6 +8,5 @@ if __name__ == "__main__":
         host=config.fastapi.host,
         port=config.fastapi.port,
         log_level=config.fastapi.log_level,
-        reload=config.fastapi.reload,
     )
 # endregion

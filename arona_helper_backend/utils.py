@@ -1,14 +1,32 @@
-import httpx
-from cookit.pyd import type_validate_python
+import json
+import random
+import string
 
+import httpx
+import jwt
+from cookit.pyd import type_validate_python
+from fastapi.security import HTTPBearer
+
+from arona_helper_backend.config import config
 from arona_helper_backend.models import (
     FavorEditResponse,
+    FavorRankingPageResponse,
     FavorRankingResponse,
     FavorUserResponse,
-    FavorRankingPageResponse,
+    LoginData,
     NickEditResponse,
 )
-from arona_helper_backend.config import config
+
+bot_verify_bearer = HTTPBearer(
+    bearerFormat="string",
+    scheme_name="Bot Verify Bearer",
+    description="Bot Verification",
+)
+user_verify_bearer = HTTPBearer(
+    bearerFormat="string",
+    scheme_name="User Verify Bearer",
+    description="User Verification",
+)
 
 
 class FavourQueryAPI:
@@ -53,7 +71,7 @@ class FavourQueryAPI:
                         "/favor_user",
                         params={
                             "uid": uid,
-                            "char": char if char else "",
+                            "char": char or "",
                         },
                     )
                 )
@@ -99,7 +117,7 @@ class FavourQueryAPI:
                         json={
                             "uid": uid,
                             "char": char,
-                            "num": num if num else "",
+                            "num": num or "",
                         },
                     )
                 )
@@ -113,15 +131,17 @@ class FavourQueryAPI:
         nick: str | None = None,
     ) -> NickEditResponse:
         async with httpx.AsyncClient(base_url=self.base_url) as client:
+            req_body = {
+                "uid": uid,
+                "nick": nick or "",
+            }
             return type_validate_python(
                 NickEditResponse,
                 (
                     await client.post(
-                        "/nick_edit",
-                        json={
-                            "uid": uid,
-                            "nick": nick if nick else "",
-                        },
+                        url="/nick_edit",
+                        content=json.dumps(req_body).encode("utf-8"),
+                        headers={"Content-Type": "application/json"},
                     )
                 )
                 .raise_for_status()
@@ -131,7 +151,8 @@ class FavourQueryAPI:
 
 async def stu_alias_convert(stu: str) -> str | None:
     async with httpx.AsyncClient(
-        base_url=config.bawiki_data, follow_redirects=True
+        base_url=config.bawiki_data,
+        follow_redirects=True,
     ) as client:
         stu_alias_list: dict[str, list[str]] = (
             (await client.get("/data/stu_alias.json")).raise_for_status().json()
@@ -144,3 +165,26 @@ async def stu_alias_convert(stu: str) -> str | None:
 
 def page_count(total_count: int, num: int) -> int:
     return (total_count + num - 1) // num
+
+
+def rs_generator(
+    size: int = 6,
+    chars: str = string.ascii_uppercase + string.digits,
+) -> str:
+    return "".join(random.choice(chars) for _ in range(size))
+
+
+def verify_jwt(jwt_token: str) -> LoginData:
+    try:
+        return type_validate_python(
+            LoginData,
+            jwt.decode(
+                jwt=jwt_token,
+                key=config.secret.jwt_secret,
+                algorithms=[config.secret.jwt_algorithm],
+            ),
+        )
+    except jwt.ExpiredSignatureError as e:
+        raise ValueError("Token Expired") from e
+    except jwt.InvalidTokenError as e:
+        raise ValueError("Invalid Token") from e
