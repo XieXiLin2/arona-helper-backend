@@ -35,8 +35,10 @@ LOGIN_EXPIRE_TIME = 60 * 60 * 24 * 7
                 "application/json": {
                     "example": {
                         "status": 200,
-                        "auth_code": "H3S01N",
-                        "exp": CODE_EXPIRE_TIME,
+                        "data": {
+                            "auth_code": "BASRT9",
+                            "exp": CODE_EXPIRE_TIME,
+                        },
                     },
                 },
             },
@@ -54,8 +56,10 @@ async def get_auth_code() -> JSONResponse:
     return JSONResponse(
         content={
             "status": 200,
-            "auth_code": auth_code,
-            "exp": CODE_EXPIRE_TIME,
+            "data": {
+                "auth_code": auth_code,
+                "exp": CODE_EXPIRE_TIME,
+            },
         },
         status_code=200,
     )
@@ -125,7 +129,10 @@ async def bot_call_verify(
                 "application/json": {
                     "example": {
                         "status": 200,
-                        "token": "JWT_Token",
+                        "data": {
+                            "token": "JWT_Token",
+                            "expire_on": 114514,
+                        },
                     },
                 },
             },
@@ -159,6 +166,7 @@ async def check_auth_code(code: str) -> JSONResponse:
     if await redis_conn.exists(f"login:auth_code:{code}"):
         if (await redis_conn.get(f"login:auth_code:{code}")) != "":
             user_id: str = await redis_conn.get(f"login:auth_code:{code}")
+            await redis_conn.delete(f"login:auth_code:{code}")
             login_form = LoginData(
                 user_id=user_id,
                 exp=int(time()) + LOGIN_EXPIRE_TIME,
@@ -168,7 +176,13 @@ async def check_auth_code(code: str) -> JSONResponse:
                 key=config.secret.jwt_secret,
                 algorithm=config.secret.jwt_algorithm,
             )
-            return JSONResponse({"status": 200, "token": lg_token}, status_code=200)
+            return JSONResponse(
+                {
+                    "status": 200,
+                    "data": {"token": lg_token, "expire_on": login_form.exp},
+                },
+                status_code=200,
+            )
         return JSONResponse({"status": 401, "msg": "未完成验证"}, status_code=401)
     return JSONResponse({"status": 403, "msg": "未找到 code"}, status_code=403)
 
@@ -184,7 +198,10 @@ async def check_auth_code(code: str) -> JSONResponse:
                 "application/json": {
                     "example": {
                         "status": 200,
-                        "token": "JWT_Token",
+                        "data": {
+                            "token": "JWT_Token",
+                            "expire_on": 114514,
+                        },
                     },
                 },
             },
@@ -243,7 +260,10 @@ async def refresh_token(
             key=config.secret.jwt_secret,
             algorithm=config.secret.jwt_algorithm,
         )
-        return JSONResponse({"status": 200, "token": lg_token}, status_code=200)
+        return JSONResponse(
+            {"status": 200, "data": {"token": lg_token, "expire_on": login_form.exp}},
+            status_code=200,
+        )
     except jwt.ExpiredSignatureError:
         return JSONResponse(
             {"status": 401, "msg": "token 过期，请重新登录"},

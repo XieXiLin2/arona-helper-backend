@@ -131,17 +131,15 @@ class FavourQueryAPI:
         nick: str | None = None,
     ) -> NickEditResponse:
         async with httpx.AsyncClient(base_url=self.base_url) as client:
-            req_body = {
-                "uid": uid,
-                "nick": nick or "",
-            }
             return type_validate_python(
                 NickEditResponse,
                 (
                     await client.post(
                         url="/nick_edit",
-                        content=json.dumps(req_body).encode("utf-8"),
-                        headers={"Content-Type": "application/json"},
+                        data={
+                            "uid": uid,
+                            "nick": nick or "",
+                        },
                     )
                 )
                 .raise_for_status()
