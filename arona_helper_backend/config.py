@@ -14,8 +14,18 @@ class RedisConfigModel(BaseModel):
     url: str
 
 
+class MySQLConfigModel(BaseModel):
+    host: str
+    port: int
+    user: str
+    password: str
+    database: str
+    chatset: str = "utf8mb4"
+
+
 class DatabaseConfigModel(BaseModel):
     redis: RedisConfigModel
+    mysql: MySQLConfigModel
 
 
 class FastAPIConfigModel(BaseModel):

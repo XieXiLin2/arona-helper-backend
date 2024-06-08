@@ -13,3 +13,10 @@ fastapi:
 database:
   redis:
     url: "redis://[[username]:[password]]@localhost:6379/0"
+  mysql:
+    host: localhost
+    port: 3306
+    user: root
+    password: root
+    database: arona
+    chatset: utf8mb4
