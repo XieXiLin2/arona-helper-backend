@@ -219,7 +219,7 @@ async def ranking(
     async with get_session() as session:
         query_resp = await session.scalars(
             statement.order_by(
-                Favor.level.desc() if reverse else Favor.level.asc(),
+                Favor.level.asc() if reverse else Favor.level.desc(),
             ).slice((page - 1) * num, page * num),
         )
     return JSONResponse(
