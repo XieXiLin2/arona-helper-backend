@@ -4,6 +4,7 @@ from urllib.parse import unquote_plus
 from pydantic import BaseModel, field_validator
 
 
+# region upstream api response models
 class FavourRankingData(BaseModel):
     id: str
     stu: str
@@ -12,7 +13,7 @@ class FavourRankingData(BaseModel):
     nick: str
 
     @field_validator("nick")
-    def nick_unquoted(cls, v: str) -> str:
+    def nick_unquoted(cls, v: str) -> str:  # noqa: N805
         return unquote_plus(v)
 
 
@@ -65,6 +66,17 @@ class NickEditResponse(BaseModel):
     msg: str
     status: int
     success: bool
+
+
+# endregion
+
+
+class RankingData(BaseModel):
+    uid: str
+    nick: str
+    stu: str
+    level: int
+    grade: int
 
 
 class LoginData(BaseModel):

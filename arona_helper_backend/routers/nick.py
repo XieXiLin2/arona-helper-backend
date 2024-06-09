@@ -6,7 +6,13 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 
 from arona_helper_backend.config import config
-from arona_helper_backend.utils import FavourQueryAPI, user_verify_bearer, verify_jwt
+from arona_helper_backend.models import LoginData
+from arona_helper_backend.utils import (
+    FavourQueryAPI,
+    get_login_data,
+    user_verify_bearer,
+    verify_jwt,
+)
 
 nick_router = APIRouter(prefix="/nick")
 API = FavourQueryAPI(base_url=config.upstream)
@@ -83,19 +89,9 @@ async def get_nick(uid: int) -> JSONResponse:
 )
 async def put_nick(
     nick: str,
-    token: Annotated[HTTPAuthorizationCredentials, Depends(user_verify_bearer)],
+    user_profile: Annotated[LoginData, Depends(get_login_data)],
 ) -> JSONResponse:
-    try:
-        u_profile = verify_jwt(token.credentials)
-    except ValueError as e:
-        return JSONResponse(
-            content={
-                "status": 403,
-                "msg": e.args[0],
-            },
-            status_code=403,
-        )
-    uid = int(u_profile.user_id)
+    uid = int(user_profile.user_id)
     result = await API.nick_edit(uid, nick)
     return JSONResponse(
         content={

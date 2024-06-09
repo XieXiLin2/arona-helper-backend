@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Annotated
 
 import yaml
-from cookit.pyd import type_validate_python
 from pydantic import BaseModel
 from pydantic.fields import Field
 from pydantic.networks import AnyHttpUrl
@@ -50,7 +49,4 @@ class ConfigModel(BaseModel):
     database: DatabaseConfigModel
 
 
-config: ConfigModel = type_validate_python(
-    ConfigModel,
-    yaml.safe_load(CONFIG_FILE.read_text()),
-)
+config = ConfigModel(**yaml.safe_load(CONFIG_FILE.read_text(encoding="UTF-8")))

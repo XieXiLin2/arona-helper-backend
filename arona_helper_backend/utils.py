@@ -1,13 +1,17 @@
 import json
 import random
 import string
+from typing import Annotated
 
 import httpx
 import jwt
 from cookit.pyd import type_validate_python
-from fastapi.security import HTTPBearer
+from fastapi import Depends
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from arona_helper_backend.config import config
+from arona_helper_backend.exceptions import AronaError
 from arona_helper_backend.models import (
     FavorEditResponse,
     FavorRankingPageResponse,
@@ -158,7 +162,7 @@ async def stu_alias_convert(stu: str) -> str | None:
         for key, values in stu_alias_list.items():
             if stu in values:
                 return key
-        return None
+        return stu
 
 
 def page_count(total_count: int, num: int) -> int:
@@ -186,3 +190,13 @@ def verify_jwt(jwt_token: str) -> LoginData:
         raise ValueError("Token Expired") from e
     except jwt.InvalidTokenError as e:
         raise ValueError("Invalid Token") from e
+
+
+def get_login_data(
+    token: Annotated[HTTPAuthorizationCredentials, Depends(user_verify_bearer)],
+) -> LoginData:
+    try:
+        user_profile = verify_jwt(token.credentials)
+    except ValueError as e:
+        raise AronaError(e.args[0]) from e
+    return user_profile

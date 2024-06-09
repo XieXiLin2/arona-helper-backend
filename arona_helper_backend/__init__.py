@@ -5,12 +5,13 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from arona_helper_backend.config import config
-from arona_helper_backend.routers import base_router
 from arona_helper_backend.databases.cache.redis import (
-    start_connection_pool,
     close_connection_pool,
+    start_connection_pool,
 )
-from arona_helper_backend.databases.data.sql.database import init_engine, close_engine
+from arona_helper_backend.databases.data.sql.database import close_engine, init_engine
+from arona_helper_backend.exceptions import AronaError, arona_error_handler
+from arona_helper_backend.routers import base_router
 
 __VERSION__ = "0.1.0"
 
@@ -53,6 +54,8 @@ app.add_middleware(
 )
 
 app.include_router(router=base_router)
+
+app.exception_handler(AronaError)(arona_error_handler)
 
 
 @app.get(
