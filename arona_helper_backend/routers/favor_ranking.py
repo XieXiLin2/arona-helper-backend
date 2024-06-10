@@ -27,8 +27,8 @@ async def ranking(
         statement = statement.where(Favor.Id == uid)
         state_total = state_total.where(Favor.Id == uid)
     if char:
-        statement = statement.where(Favor.stu == stu_alias_convert(char))
-        state_total = state_total.where(Favor.stu == stu_alias_convert(char))
+        statement = statement.where(Favor.stu == char)
+        state_total = state_total.where(Favor.stu == char)
     async with get_session() as session:
         query_resp = await session.scalars(
             statement.order_by(
