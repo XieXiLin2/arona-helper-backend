@@ -1,17 +1,14 @@
-from urllib.parse import unquote_plus
 from typing import Annotated
+from urllib.parse import unquote_plus
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials
 
 from arona_helper_backend.config import config
 from arona_helper_backend.models import LoginData
 from arona_helper_backend.utils import (
     FavourQueryAPI,
     get_login_data,
-    user_verify_bearer,
-    verify_jwt,
 )
 
 nick_router = APIRouter(prefix="/nick")
@@ -39,7 +36,7 @@ API = FavourQueryAPI(base_url=config.upstream)
         },
     },
 )
-async def get_nick(uid: int) -> JSONResponse:
+async def get_nick(uid: str) -> JSONResponse:
     nick = await API.nick_edit(uid=uid)
     return JSONResponse(
         content={
@@ -91,7 +88,7 @@ async def put_nick(
     nick: str,
     user_profile: Annotated[LoginData, Depends(get_login_data)],
 ) -> JSONResponse:
-    uid = int(user_profile.user_id)
+    uid = user_profile.user_id
     result = await API.nick_edit(uid, nick)
     return JSONResponse(
         content={

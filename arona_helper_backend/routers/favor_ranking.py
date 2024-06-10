@@ -1,4 +1,5 @@
 from typing import Annotated
+from urllib.parse import unquote_plus
 
 from annotated_types import Gt
 from fastapi import APIRouter
@@ -6,11 +7,17 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import func
 from sqlalchemy.future import select
 
+from arona_helper_backend.config import config
 from arona_helper_backend.databases.data.sql.database import get_session
 from arona_helper_backend.databases.data.sql.models import Favor
-from arona_helper_backend.utils import calculate_pages, stu_alias_convert
+from arona_helper_backend.utils import (
+    FavourQueryAPI,
+    calculate_pages,
+)
 
 favor_router = APIRouter(prefix="/favor")
+
+FAVOR_API = FavourQueryAPI(config.upstream)
 
 
 @favor_router.get("", name="获取好感度排行榜")
@@ -50,7 +57,11 @@ async def ranking(
                 "data": [
                     {
                         "uid": item.Id,
-                        "nick": f"{item.Id} 老师",
+                        "nick": unquote_plus(
+                            (await FAVOR_API.nick_edit(str(item.Id))).msg
+                        )
+                        if (await FAVOR_API.nick_edit(str(item.Id))).msg != ""
+                        else f"{item.Id} 老师",
                         "avatar": "https://arona.lihaoyu.cn/icon.webp",
                         "stu": item.stu,
                         "level": item.favor,

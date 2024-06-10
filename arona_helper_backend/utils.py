@@ -130,7 +130,7 @@ class FavourQueryAPI:
 
     async def nick_edit(
         self,
-        uid: int,
+        uid: str,
         nick: str | None = None,
     ) -> NickEditResponse:
         async with httpx.AsyncClient(base_url=self.base_url) as client:
@@ -139,10 +139,11 @@ class FavourQueryAPI:
                 (
                     await client.post(
                         url="/nick_edit",
-                        data={
+                        json={
                             "uid": uid,
                             "nick": nick or "",
                         },
+                        # convert to content to request
                     )
                 )
                 .raise_for_status()
