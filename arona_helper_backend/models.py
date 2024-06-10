@@ -83,4 +83,5 @@ class LoginData(BaseModel):
     user_id: str
     openid: str
     nickname: str
+    iat: int
     exp: int

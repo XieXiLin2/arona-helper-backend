@@ -180,10 +180,11 @@ async def check_auth_code(code: str) -> JSONResponse:
     if await redis_conn.exists(f"login:auth_code:{code}"):
         auth: bytes | None = await redis_conn.get(f"login:auth_code:{code}")
         if auth is not None and auth.decode("UTF-8") != "":
-            user_id: str = await redis_conn.get(f"login:auth_code:{code}")
+            user_id: str = auth.decode("UTF-8")
             await redis_conn.delete(f"login:auth_code:{code}")
             login_form = LoginData(
                 user_id=user_id,
+                iat=int(time()),
                 exp=int(time()) + LOGIN_EXPIRE_TIME,
                 openid="",
                 nickname=f"{user_id} 老师",
@@ -258,6 +259,7 @@ async def refresh_token(
             algorithms=[config.secret.jwt_algorithm],
         )
         login_form = type_validate_python(LoginData, login_data)
+        login_form.iat = int(time())
         login_form.exp = int(time()) + LOGIN_EXPIRE_TIME
         lg_token = jwt.encode(
             payload=model_dump(login_form),
