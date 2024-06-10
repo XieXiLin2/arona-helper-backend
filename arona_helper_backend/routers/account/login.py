@@ -124,7 +124,8 @@ async def bot_call_verify(
     if bot_token.credentials != config.secret.bot_req_token:
         return JSONResponse({"status": 401, "msg": "未授权"}, status_code=401)
     redis_conn = await get_redis_connection()
-    if await redis_conn.get(f"login:auth_code:{code}") != "":
+    auth: bytes | None = await redis_conn.get(f"login:auth_code:{code}")
+    if auth is not None and auth.decode("UTF-8") != "":
         return JSONResponse({"status": 403, "msg": "已被使用"}, status_code=403)
     if await redis_conn.set(name=f"login:auth_code:{code}", value=user_id, xx=True):
         return JSONResponse({"status": 200, "msg": "传递成功"}, status_code=200)
@@ -150,7 +151,7 @@ async def bot_call_verify(
                 },
             },
         },
-        401: {
+        403: {
             "description": "未完成验证",
             "content": {
                 "application/json": {
@@ -177,7 +178,8 @@ async def bot_call_verify(
 async def check_auth_code(code: str) -> JSONResponse:
     redis_conn = await get_redis_connection()
     if await redis_conn.exists(f"login:auth_code:{code}"):
-        if (await redis_conn.get(f"login:auth_code:{code}")) != "":
+        auth: bytes | None = await redis_conn.get(f"login:auth_code:{code}")
+        if auth is not None and auth.decode("UTF-8") != "":
             user_id: str = await redis_conn.get(f"login:auth_code:{code}")
             await redis_conn.delete(f"login:auth_code:{code}")
             login_form = LoginData(
@@ -196,8 +198,8 @@ async def check_auth_code(code: str) -> JSONResponse:
                 },
                 status_code=200,
             )
-        return JSONResponse({"status": 401, "msg": "未完成验证"}, status_code=401)
-    return JSONResponse({"status": 403, "msg": "未找到 code"}, status_code=403)
+        return JSONResponse({"status": 403, "msg": "未完成验证"}, status_code=401)
+    return JSONResponse({"status": 404, "msg": "未找到 code"}, status_code=403)
 
 
 @login_router.post(
@@ -219,17 +221,6 @@ async def check_auth_code(code: str) -> JSONResponse:
                 },
             },
         },
-        400: {
-            "description": "未提供 token",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "status": 400,
-                        "msg": "未提供 token",
-                    },
-                },
-            },
-        },
         401: {
             "description": "token 过期",
             "content": {
@@ -241,12 +232,12 @@ async def check_auth_code(code: str) -> JSONResponse:
                 },
             },
         },
-        403: {
+        404: {
             "description": "无效 token",
             "content": {
                 "application/json": {
                     "example": {
-                        "status": 403,
+                        "status": 404,
                         "msg": "无效 token",
                     },
                 },
@@ -257,8 +248,6 @@ async def check_auth_code(code: str) -> JSONResponse:
 async def refresh_token(
     auth: Annotated[HTTPAuthorizationCredentials, Depends(user_verify_bearer)],
 ) -> JSONResponse:
-    if not auth:
-        return JSONResponse({"status": 400, "msg": "未提供 token"}, status_code=400)
     token = auth.credentials
     try:
         login_data = jwt.decode(
@@ -283,4 +272,4 @@ async def refresh_token(
             status_code=401,
         )
     except jwt.InvalidTokenError:
-        return JSONResponse({"status": 403, "msg": "无效 token"}, status_code=403)
+        return JSONResponse({"status": 404, "msg": "无效 token"}, status_code=403)

@@ -11,7 +11,7 @@ async def start_connection_pool() -> None:
     if not REDIS_CONNECTION_POOL:
         try:
             REDIS_CONNECTION_POOL = redis.ConnectionPool.from_url(
-                url=config.database.redis.url,
+                config.database.redis.url,
             )
         except redis.RedisError as e:
             # 添加异常处理
@@ -31,6 +31,7 @@ async def get_connection_pool() -> redis.ConnectionPool:
 async def get_redis_connection() -> redis.Redis:
     return redis.Redis(
         connection_pool=await get_connection_pool(),
+        decode_responses=True,
     )  # 使用 connection_pool 参数
 
 
