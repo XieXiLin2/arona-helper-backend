@@ -156,7 +156,7 @@ async def bot_call_verify(
             "content": {
                 "application/json": {
                     "example": {
-                        "status": 401,
+                        "status": 403,
                         "msg": "未完成验证",
                     },
                 },
@@ -198,8 +198,8 @@ async def check_auth_code(code: str) -> JSONResponse:
                 },
                 status_code=200,
             )
-        return JSONResponse({"status": 403, "msg": "未完成验证"}, status_code=401)
-    return JSONResponse({"status": 404, "msg": "未找到 code"}, status_code=403)
+        return JSONResponse({"status": 403, "msg": "未完成验证"}, status_code=403)
+    return JSONResponse({"status": 404, "msg": "未找到 code"}, status_code=404)
 
 
 @login_router.post(
