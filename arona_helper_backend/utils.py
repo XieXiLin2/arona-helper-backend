@@ -1,4 +1,4 @@
-import json
+import math
 import random
 import string
 from typing import Annotated
@@ -7,7 +7,6 @@ import httpx
 import jwt
 from cookit.pyd import type_validate_python
 from fastapi import Depends
-from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from arona_helper_backend.config import config
@@ -165,8 +164,9 @@ async def stu_alias_convert(stu: str) -> str | None:
         return stu
 
 
-def page_count(total_count: int, num: int) -> int:
-    return (total_count + num - 1) // num
+def calculate_pages(num_per_page: int, total_items: int):
+    pages: int = math.ceil(total_items / num_per_page)
+    return pages
 
 
 def rs_generator(
