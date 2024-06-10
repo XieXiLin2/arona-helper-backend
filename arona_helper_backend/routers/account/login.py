@@ -185,6 +185,8 @@ async def check_auth_code(code: str) -> JSONResponse:
             login_form = LoginData(
                 user_id=user_id,
                 exp=int(time()) + LOGIN_EXPIRE_TIME,
+                openid="",
+                nickname=f"{user_id} 老师",
             )
             lg_token = jwt.encode(
                 payload=model_dump(login_form),
@@ -203,7 +205,7 @@ async def check_auth_code(code: str) -> JSONResponse:
 
 
 @login_router.post(
-    path="/code/refresh",
+    path="/refresh",
     name="刷新 token",
     description="刷新 token，需要提供原 token。",
     responses={

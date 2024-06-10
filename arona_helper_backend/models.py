@@ -81,4 +81,6 @@ class RankingData(BaseModel):
 
 class LoginData(BaseModel):
     user_id: str
+    openid: str
+    nickname: str
     exp: int
