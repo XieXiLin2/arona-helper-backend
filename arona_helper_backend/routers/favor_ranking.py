@@ -51,6 +51,7 @@ async def ranking(
                     {
                         "uid": item.Id,
                         "nick": f"{item.Id} 老师",
+                        "avatar": "https://arona.lihaoyu.cn/icon.webp",
                         "stu": item.stu,
                         "level": item.favor,
                         "grade": item.level,

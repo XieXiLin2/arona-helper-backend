@@ -71,14 +71,6 @@ class NickEditResponse(BaseModel):
 # endregion
 
 
-class RankingData(BaseModel):
-    uid: str
-    nick: str
-    stu: str
-    level: int
-    grade: int
-
-
 class LoginData(BaseModel):
     user_id: str
     openid: str
