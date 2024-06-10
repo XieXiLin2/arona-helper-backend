@@ -1,5 +1,6 @@
 from time import time
 from typing import Annotated
+from urllib.parse import unquote_plus
 
 import jwt
 from cookit.pyd import model_dump
@@ -12,12 +13,15 @@ from arona_helper_backend.config import config
 from arona_helper_backend.databases.cache.redis import get_redis_connection
 from arona_helper_backend.models import LoginData
 from arona_helper_backend.utils import (
+    FavourQueryAPI,
     bot_verify_bearer,
     rs_generator,
     user_verify_bearer,
 )
 
 login_router = APIRouter(prefix="/login")
+
+FAVOR_API = FavourQueryAPI(config.upstream)
 
 CODE_EXPIRE_TIME = 120
 
@@ -187,7 +191,9 @@ async def check_auth_code(code: str) -> JSONResponse:
                 iat=int(time()),
                 exp=int(time()) + LOGIN_EXPIRE_TIME,
                 openid="",
-                nickname=f"{user_id} 老师",
+                nickname=unquote_plus((await FAVOR_API.nick_edit(user_id)).msg)
+                if (await FAVOR_API.nick_edit(user_id)).msg != ""
+                else f"{user_id} 老师",
             )
             lg_token = jwt.encode(
                 payload=model_dump(login_form),
@@ -261,6 +267,11 @@ async def refresh_token(
         login_form = type_validate_python(LoginData, login_data)
         login_form.iat = int(time())
         login_form.exp = int(time()) + LOGIN_EXPIRE_TIME
+        login_form.nickname = (
+            unquote_plus((await FAVOR_API.nick_edit(login_form.user_id)).msg)
+            if (await FAVOR_API.nick_edit(login_form.user_id)).msg != ""
+            else f"{login_form.user_id} 老师"
+        )
         lg_token = jwt.encode(
             payload=model_dump(login_form),
             key=config.secret.jwt_secret,
