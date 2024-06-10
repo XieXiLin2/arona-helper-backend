@@ -56,9 +56,10 @@ async def ranking(
             "data": {
                 "data": [
                     {
+                        "rank": rank + index,
                         "uid": item.Id,
                         "nick": unquote_plus(
-                            (await FAVOR_API.nick_edit(str(item.Id))).msg
+                            (await FAVOR_API.nick_edit(str(item.Id))).msg,
                         )
                         if (await FAVOR_API.nick_edit(str(item.Id))).msg != ""
                         else f"{item.Id} 老师",
