@@ -39,11 +39,17 @@ class SecretConfigModel(BaseModel):
     jwt_secret: str
     jwt_algorithm: str = "HS256"
     bot_req_token: str
+    bot_appid: int
+
+
+class UpstreamConfigModel(BaseModel):
+    url: Annotated[str, AnyHttpUrl]
+    token: str
 
 
 class ConfigModel(BaseModel):
     secret: SecretConfigModel
-    upstream: Annotated[str, AnyHttpUrl]
+    upstream: UpstreamConfigModel
     bawiki_data: Annotated[str, AnyHttpUrl]
     fastapi: FastAPIConfigModel
     database: DatabaseConfigModel

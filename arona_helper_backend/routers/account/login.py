@@ -21,7 +21,7 @@ from arona_helper_backend.utils import (
 
 login_router = APIRouter(prefix="/login")
 
-FAVOR_API = FavourQueryAPI(config.upstream)
+FAVOR_API = FavourQueryAPI(config.upstream.url)
 
 CODE_EXPIRE_TIME = 120
 

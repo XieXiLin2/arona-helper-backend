@@ -12,7 +12,7 @@ from arona_helper_backend.utils import (
 )
 
 nick_router = APIRouter(prefix="/nick")
-API = FavourQueryAPI(base_url=config.upstream)
+API = FavourQueryAPI(base_url=config.upstream.url)
 
 
 @nick_router.get(

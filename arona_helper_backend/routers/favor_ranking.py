@@ -17,7 +17,7 @@ from arona_helper_backend.utils import (
 
 favor_router = APIRouter(prefix="/favor")
 
-FAVOR_API = FavourQueryAPI(config.upstream)
+FAVOR_API = FavourQueryAPI(config.upstream.url)
 
 
 @favor_router.get("", name="获取好感度排行榜")
@@ -63,7 +63,6 @@ async def ranking(
                         )
                         if (await FAVOR_API.nick_edit(str(item.Id))).msg != ""
                         else f"{item.Id} 老师",
-                        "avatar": "https://arona.lihaoyu.cn/icon.webp",
                         "stu": item.stu,
                         "level": item.favor,
                         "grade": item.level,

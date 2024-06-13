@@ -68,6 +68,10 @@ class NickEditResponse(BaseModel):
     success: bool
 
 
+class GetRealIDResponse(BaseModel):
+    id: str
+
+
 # endregion
 
 

@@ -19,6 +19,7 @@ from arona_helper_backend.models import (
     FavorRankingPageResponse,
     FavorRankingResponse,
     FavorUserResponse,
+    GetRealIDResponse,
     LoginData,
     NickEditResponse,
 )
@@ -36,8 +37,9 @@ user_verify_bearer = HTTPBearer(
 
 
 class FavourQueryAPI:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, token: str | None = None):
         self.base_url = base_url
+        self.token = token
 
     async def favor_ranking(
         self,
@@ -152,6 +154,23 @@ class FavourQueryAPI:
                 .raise_for_status()
                 .json(),
             )
+
+    async def get_real_id(self, vitural_id: str):
+        async with httpx.AsyncClient(base_url=self.base_url) as client:
+            response: dict = (
+                (
+                    await client.get(
+                        "/getid",
+                        params={"ID": vitural_id},
+                        headers={"Authorization": f"Bearer {self.token}"},
+                    )
+                )
+                .raise_for_status()
+                .json()
+            )
+            if response.get("error"):
+                raise ValueError(response.get("error"))
+            return type_validate_python(GetRealIDResponse, response)
 
 
 async def stu_alias_convert(stu: str) -> str | None:

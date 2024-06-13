@@ -2,7 +2,10 @@ secret:
   jwt_secret: 3BTBXHS570HT7711P1YLUO106K3A1BU6N7CDQCH5B2TACIVNBR # 请替换为自己的 JWT Token
   jwt_algorithm: HS256
   bot_req_token: ZBYTEOUFEPRHSIQERZHOBMIEVQBWSPVJLVZLYTFLFEXNSKWLIX # 请替换为自己的 Bot 请求 Token 
-upstream: http://10.21.7.123:6666/
+  bot_appid: 1145141919810
+upstream: 
+  url: http://10.21.7.123:6666/
+  token: YOURTOKENHERE
 bawiki_data: https://bawiki.lgc2333.top/
 fastapi:
   host: 0.0.0.0
