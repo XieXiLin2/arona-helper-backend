@@ -23,7 +23,15 @@ async def init_engine(user: str, password: str, host: str, port: int, dbname: st
         port=port,
         database=dbname,
     )
-    engine = create_async_engine(database_url, echo=True)
+    engine = create_async_engine(
+        database_url,
+        echo=False,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        pool_timeout=30,
+        pool_recycle=3600,
+    )
 
 
 def get_engine() -> AsyncEngine:

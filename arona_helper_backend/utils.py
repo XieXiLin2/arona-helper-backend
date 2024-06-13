@@ -8,8 +8,11 @@ import jwt
 from cookit.pyd import type_validate_python
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.future import select
 
 from arona_helper_backend.config import config
+from arona_helper_backend.databases.data.sql.database import get_session
+from arona_helper_backend.databases.data.sql.models import Favor
 from arona_helper_backend.exceptions import AronaError
 from arona_helper_backend.models import (
     FavorEditResponse,
@@ -201,3 +204,9 @@ def get_login_data(
     except ValueError as e:
         raise AronaError(e.args[0]) from e
     return user_profile
+
+
+async def db_keep_alive():
+    statement = select(Favor)
+    async with get_session() as session:
+        (await session.scalars(statement)).all()

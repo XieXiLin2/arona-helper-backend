@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
@@ -12,8 +13,12 @@ from arona_helper_backend.databases.cache.redis import (
 from arona_helper_backend.databases.data.sql.database import close_engine, init_engine
 from arona_helper_backend.exceptions import AronaError, arona_error_handler
 from arona_helper_backend.routers import base_router
+from arona_helper_backend.utils import db_keep_alive
 
 __VERSION__ = "0.1.0"
+
+
+SCHEDULER = AsyncIOScheduler()
 
 
 @asynccontextmanager
@@ -26,9 +31,12 @@ async def lifespan(application: FastAPI):  # noqa: ARG001
         port=config.database.mysql.port,
         dbname=config.database.mysql.database,
     )
+    SCHEDULER.add_job(db_keep_alive, "interval", seconds=30)
+    SCHEDULER.start()
     yield
     await close_connection_pool()
     await close_engine()
+    SCHEDULER.shutdown()
 
 
 app = FastAPI(
