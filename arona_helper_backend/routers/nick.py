@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from arona_helper_backend.config import config
+from arona_helper_backend.exceptions import AronaError
 from arona_helper_backend.models import LoginData
 from arona_helper_backend.utils import (
     FavourQueryAPI,
@@ -72,11 +73,33 @@ async def get_nick(uid: str) -> JSONResponse:
             },
         },
         403: {
-            "description": "修改失败",
+            "description": "昵称违规",
             "content": {
                 "application/json": {
                     "example": {
                         "status": 403,
+                        "msg": "昵称违规",
+                    },
+                },
+            },
+        },
+        404: {
+            "description": "未找到 UID",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": 404,
+                        "msg": "error message",
+                    },
+                },
+            },
+        },
+        418: {
+            "description": "后端服务异常",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": 503,
                         "msg": "error message",
                     },
                 },
@@ -90,6 +113,8 @@ async def put_nick(
 ) -> JSONResponse:
     uid = user_profile.user_id
     result = await API.nick_edit(uid, nick)
+    if result.status != 200:
+        raise AronaError(result.msg, result.status)
     return JSONResponse(
         content={
             "status": 200,

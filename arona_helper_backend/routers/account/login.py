@@ -8,9 +8,11 @@ from cookit.pyd.compat import type_validate_python
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
+from pydantic import ValidationError
 
 from arona_helper_backend.config import config
 from arona_helper_backend.databases.cache.redis import get_redis_connection
+from arona_helper_backend.exceptions import AronaError
 from arona_helper_backend.models import LoginData
 from arona_helper_backend.utils import (
     FavourQueryAPI,
@@ -264,7 +266,10 @@ async def refresh_token(
             key=config.secret.jwt_secret,
             algorithms=[config.secret.jwt_algorithm],
         )
-        login_form = type_validate_python(LoginData, login_data)
+        try:
+            login_form = type_validate_python(LoginData, login_data)
+        except ValidationError as e:
+            raise AronaError("无效 token", 404) from e
         login_form.iat = int(time())
         login_form.exp = int(time()) + LOGIN_EXPIRE_TIME
         login_form.nickname = (

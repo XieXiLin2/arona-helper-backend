@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from arona_helper_backend.config import config
@@ -18,6 +20,7 @@ from arona_helper_backend.utils import db_keep_alive
 __VERSION__ = "0.1.0"
 
 
+STATIC_PATH = Path(__file__).parent / "static"
 SCHEDULER = AsyncIOScheduler()
 
 
@@ -51,6 +54,7 @@ app = FastAPI(
         "url": r"https://zh.wikipedia.org/wiki/MIT%E8%A8%B1%E5%8F%AF%E8%AD%89",
     },
     lifespan=lifespan,
+    swagger_ui_parameters={},
 )
 
 app.add_middleware(
@@ -98,3 +102,6 @@ async def root() -> JSONResponse:
         },
         status_code=200,
     )
+
+
+app.mount("/", StaticFiles(directory=STATIC_PATH, follow_symlink=True), "StaticFiles")

@@ -1,3 +1,4 @@
+from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
 
@@ -7,7 +8,7 @@ class AronaError(Exception):
         self.status_code = status_code
 
 
-def arona_error_handler(exc: AronaError):
+def arona_error_handler(_: Request, exc: AronaError):
     return JSONResponse(
         content={"status": exc.status_code, "msg": exc.message},
         status_code=exc.status_code,

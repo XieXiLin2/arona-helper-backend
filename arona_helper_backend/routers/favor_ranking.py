@@ -61,7 +61,8 @@ async def ranking(
                         "nick": unquote_plus(
                             (await FAVOR_API.nick_edit(str(item.Id))).msg,
                         )
-                        if (await FAVOR_API.nick_edit(str(item.Id))).msg != ""
+                        if (await FAVOR_API.nick_edit(str(item.Id))).msg
+                        not in ["", "[]"]
                         else f"{item.Id} 老师",
                         "stu": item.stu,
                         "level": item.favor,

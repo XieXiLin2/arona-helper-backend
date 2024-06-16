@@ -169,7 +169,10 @@ class FavourQueryAPI:
                 .json()
             )
             if response.get("error"):
-                raise ValueError(response.get("error"))
+                raise AronaError(
+                    response.get("error", "UID Not Found"),
+                    status_code=404,
+                )
             return type_validate_python(GetRealIDResponse, response)
 
 
