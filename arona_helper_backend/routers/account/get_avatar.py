@@ -30,10 +30,14 @@ async def get_avatar(uid: str) -> Response:
     if await redis_conn.exists(f"cache:avatar:{uid}"):
         avatar: bytes | None = await redis_conn.get(f"cache:avatar:{uid}")
         if avatar is not None:
-            print("> Successfully get avatar from cache.")
+            print(f"> [{uid}] Successfully get av1atar from cache.")
             return Response(content=avatar, media_type="image/png", status_code=200)
-    print("> Avatar not found in cache, fetching from qlogo.")
-    real_id = (await FAVOR_API.get_real_id(uid)).id
+    print(f"> [{uid}] Avatar not found in cache, fetching from qlogo.")
+    try:
+        real_id = (await FAVOR_API.get_real_id(uid)).id
+    except httpx.HTTPError as e:
+        raise AronaError("[!!!] Mapping Error [!!!]", 408) from e
+    print(f"> [{uid}] Mapping: {uid} <-> {real_id}")
     try:
         async with httpx.AsyncClient() as client:
             response = (
@@ -49,5 +53,5 @@ async def get_avatar(uid: str) -> Response:
         nx=True,
         ex=AVATAR_EXPIRE_TIME,
     )
-    print("> Successfully get avatar from qlogo.")
+    print(f"> [{uid} -> {real_id}] Successfully get avatar from qlogo.")
     return Response(content=response.content, media_type="image/png", status_code=200)
