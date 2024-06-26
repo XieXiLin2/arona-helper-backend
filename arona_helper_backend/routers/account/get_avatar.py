@@ -39,7 +39,7 @@ async def get_avatar(uid: str) -> Response:
         raise AronaError("[!!!] Mapping Error [!!!]", 408) from e
     print(f"> [{uid}] Mapping: {uid} <-> {real_id}")
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = (
                 await client.get(
                     f"https://q.qlogo.cn/qqapp/{config.secret.bot_appid}/{real_id}/640",
