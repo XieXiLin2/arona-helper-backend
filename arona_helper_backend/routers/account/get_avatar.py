@@ -30,7 +30,7 @@ async def get_avatar(uid: str) -> Response:
     if await redis_conn.exists(f"cache:avatar:{uid}"):
         avatar: bytes | None = await redis_conn.get(f"cache:avatar:{uid}")
         if avatar is not None:
-            print(f"> [{uid}] Successfully get av1atar from cache.")
+            print(f"> [{uid}] Successfully get avatar from cache.")
             return Response(content=avatar, media_type="image/png", status_code=200)
     print(f"> [{uid}] Avatar not found in cache, fetching from qlogo.")
     try:
