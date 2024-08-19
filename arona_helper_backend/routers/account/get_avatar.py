@@ -1,6 +1,7 @@
 import httpx
 from fastapi import APIRouter
 from fastapi.responses import Response
+from loguru import logger
 
 from arona_helper_backend.config import config
 from arona_helper_backend.databases.cache.redis import get_redis_connection
@@ -46,6 +47,7 @@ async def get_avatar(uid: str) -> Response:
                 )
             ).raise_for_status()
     except httpx.HTTPError as e:
+        logger.warning(f"获取头像失败: {e}")
         raise AronaError("获取头像失败", 408) from e
     await redis_conn.set(
         f"cache:avatar:{uid}",
